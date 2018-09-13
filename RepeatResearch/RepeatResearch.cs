@@ -1,25 +1,43 @@
 ﻿using System;
-using System.Reflection;
-using System.Reflection.Emit;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using Harmony;
-using UnityEngine;
 using UnityModManagerNet;
+using UnityEngine;
 using TH20;
 
 namespace RepeatResearch
 {
-    internal static class Main
+    public class Settings : UnityModManager.ModSettings
     {
+        public bool RepeatProjectsFlag;
+
+        public float ResearchTickRate = 0f;
+
+        public override void Save(UnityModManager.ModEntry modEntry)
+        {
+            UnityModManager.ModSettings.Save<Settings>(this, modEntry);
+        }
+    }
+
+    static class Main
+    {
+        public static bool enabled;
+        public static Settings settings;
+        public static UnityModManager.ModEntry.ModLogger Logger;
+
         private static bool Load(UnityModManager.ModEntry modEntry)
         {
-            HarmonyInstance.Create(modEntry.Info.Id).PatchAll(Assembly.GetExecutingAssembly());
-            // Main.settings = UnityModManager.ModSettings.Load<Settings>(modEntry);
+            var harmony = HarmonyInstance.Create(modEntry.Info.Id);
+            harmony.PatchAll(Assembly.GetExecutingAssembly());
+
+            Main.settings = UnityModManager.ModSettings.Load<Settings>(modEntry);
             Main.Logger = modEntry.Logger;
             modEntry.OnToggle = new Func<UnityModManager.ModEntry, bool, bool>(Main.OnToggle);
-            // modEntry.OnGUI = new Action<UnityModManager.ModEntry>(Main.OnGUI);
-            // modEntry.OnSaveGUI = new Action<UnityModManager.ModEntry>(Main.OnSaveGUI);
+            modEntry.OnGUI = new Action<UnityModManager.ModEntry>(Main.OnGUI);
+            modEntry.OnSaveGUI = new Action<UnityModManager.ModEntry>(Main.OnSaveGUI);
             return true;
         }
 
@@ -29,10 +47,10 @@ namespace RepeatResearch
             return true;
         }
 
-        /*
+        
         private static void OnGUI(UnityModManager.ModEntry modEntry)
         {
-            /*
+            
             GUILayout.BeginHorizontal(new GUILayoutOption[0]);
             GUILayout.Label("Research Rate Increase: Increase Each Tick By Amount ", new GUILayoutOption[]
             {
@@ -56,15 +74,8 @@ namespace RepeatResearch
 
         private static void OnSaveGUI(UnityModManager.ModEntry modEntry)
         {
-            Main.settings.Save(modEntry);
+            settings.Save(modEntry);
         }
-        */
-
-        public static bool enabled;
-
-        // public static Settings settings;
-
-        public static UnityModManager.ModEntry.ModLogger Logger;
     }
 
     [HarmonyPatch(typeof(ResearchManager), "CompleteResearchProject")]
@@ -72,8 +83,7 @@ namespace RepeatResearch
     {
         private static bool Prefix(ResearchManager __instance, ResearchProject project, Level ___level)
         {
-            //if (!Main.enabled || !Main.settings.RepeatProjectsFlag || !project.Definition.Repeatable)
-            if (!Main.enabled || !project.Definition.Repeatable)
+            if (!Main.enabled || !Main.settings.RepeatProjectsFlag || !project.Definition.Repeatable)
             {
                 return true;
             }
@@ -86,8 +96,7 @@ namespace RepeatResearch
 
 
     }
-
-    /*
+    
     [HarmonyPatch(typeof(RoomLogicResearch), "Tick")]
     internal static class RoomLogicResearch_Tick_Patch
     {
@@ -112,18 +121,4 @@ namespace RepeatResearch
             return true;
         }
     }
-    
-
-    public class Settings : UnityModManager.ModSettings
-    {
-        public override void Save(UnityModManager.ModEntry modEntry)
-        {
-            UnityModManager.ModSettings.Save<Settings>(this, modEntry);
-        }
-
-        // public bool RepeatProjectsFlag;
-
-        // public float ResearchTickRate = 0f;
-    }
-    */
 }
