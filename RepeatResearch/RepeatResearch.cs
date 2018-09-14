@@ -12,13 +12,12 @@ namespace RepeatResearch
 {
     public class Settings : UnityModManager.ModSettings
     {
-        public bool RepeatProjectsFlag;
-
-        public float ResearchTickRate = 0f;
+        public bool RepeatProjectsFlag = true;
+        public int ResearchTickRate = 0;
 
         public override void Save(UnityModManager.ModEntry modEntry)
         {
-            UnityModManager.ModSettings.Save<Settings>(this, modEntry);
+            Save(this, modEntry);
         }
     }
 
@@ -28,60 +27,51 @@ namespace RepeatResearch
         public static Settings settings;
         public static UnityModManager.ModEntry.ModLogger Logger;
 
-        private static bool Load(UnityModManager.ModEntry modEntry)
+        static bool Load(UnityModManager.ModEntry modEntry)
         {
             var harmony = HarmonyInstance.Create(modEntry.Info.Id);
             harmony.PatchAll(Assembly.GetExecutingAssembly());
 
-            Main.settings = UnityModManager.ModSettings.Load<Settings>(modEntry);
-            Main.Logger = modEntry.Logger;
-            modEntry.OnToggle = new Func<UnityModManager.ModEntry, bool, bool>(Main.OnToggle);
-            modEntry.OnGUI = new Action<UnityModManager.ModEntry>(Main.OnGUI);
-            modEntry.OnSaveGUI = new Action<UnityModManager.ModEntry>(Main.OnSaveGUI);
+            settings = Settings.Load<Settings>(modEntry);
+            Logger = modEntry.Logger;
+            modEntry.OnToggle = OnToggle;
+            modEntry.OnGUI = OnGUI;
+            modEntry.OnSaveGUI = OnSaveGUI;
             return true;
         }
 
-        private static bool OnToggle(UnityModManager.ModEntry modEntry, bool value)
+        static bool OnToggle(UnityModManager.ModEntry modEntry, bool value)
         {
-            Main.enabled = value;
+            enabled = value;
             return true;
         }
 
         
-        private static void OnGUI(UnityModManager.ModEntry modEntry)
+        static void OnGUI(UnityModManager.ModEntry modEntry)
         {
-            
-            GUILayout.BeginHorizontal(new GUILayoutOption[0]);
-            GUILayout.Label("Research Rate Increase: Increase Each Tick By Amount ", new GUILayoutOption[]
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Research Rate Increase: Increase Each Tick By Amount ", GUILayout.ExpandWidth(false));
+            var text = settings.ResearchTickRate.ToString();
+            var text2 = GUILayout.TextField(text, 3, GUILayout.Width(50));
+            if (text2 != text && int.TryParse(text2, out var value))
             {
-                GUILayout.ExpandWidth(false)
-            });
-            string text = Main.settings.ResearchTickRate.ToString();
-            string text2 = GUILayout.TextField(text, 3, new GUILayoutOption[]
-            {
-                GUILayout.Width(50f)
-            });
-            int value;
-            if (text2 != text && int.TryParse(text2, out value))
-            {
-                Main.settings.ResearchTickRate = Mathf.Clamp(value, 0, 500) * 1f;
+                settings.ResearchTickRate = Mathf.Clamp(value, 0, 500);
             }
             GUILayout.EndHorizontal();
-            
 
-            Main.settings.RepeatProjectsFlag = GUILayout.Toggle(Main.settings.RepeatProjectsFlag, " Repeat Research Projects", new GUILayoutOption[0]);
+            settings.RepeatProjectsFlag = GUILayout.Toggle(Main.settings.RepeatProjectsFlag, " Repeat Research Projects");
         }
 
-        private static void OnSaveGUI(UnityModManager.ModEntry modEntry)
+        static void OnSaveGUI(UnityModManager.ModEntry modEntry)
         {
             settings.Save(modEntry);
         }
     }
 
     [HarmonyPatch(typeof(ResearchManager), "CompleteResearchProject")]
-    internal static class ResearchManager_CompleteResearchProject_Patch
+    static class ResearchManager_CompleteResearchProject_Patch
     {
-        private static bool Prefix(ResearchManager __instance, ResearchProject project, Level ___level)
+        static bool Prefix(ResearchManager __instance, ResearchProject project, ref Level ___level)
         {
             if (!Main.enabled || !Main.settings.RepeatProjectsFlag || !project.Definition.Repeatable)
             {
@@ -93,12 +83,10 @@ namespace RepeatResearch
             ___level.ObjectiveEvents.OnGameEvent.InvokeSafe(ObjectiveGameEvent.ResearchProjectCompleted);
             return false;
         }
-
-
     }
     
     [HarmonyPatch(typeof(RoomLogicResearch), "Tick")]
-    internal static class RoomLogicResearch_Tick_Patch
+    static class RoomLogicResearch_Tick_Patch
     {
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
@@ -108,7 +96,7 @@ namespace RepeatResearch
                 var instruction = instructionsList[i];
                 yield return instruction;
                 if (instruction.opcode == OpCodes.Stloc_S
-                    && instructionsList[i - 1].operand == typeof(Staff).GetMethod("GetResearchRate", new Type[] { typeof(float) }))
+                    && (MethodInfo) instructionsList[i - 1].operand == typeof(Staff).GetMethod("GetResearchRate", new Type[] { typeof(float) }))
                 {
                     yield return new CodeInstruction(OpCodes.Ldarg_S);
                     yield return new CodeInstruction(OpCodes.Call, typeof(RoomLogicResearch_Tick_Patch).GetMethod("AddTickFloat"));
