@@ -243,3 +243,7 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/RepeatResearch/AdvancedAI.cs
+/RepeatResearch/JobAssignHelper.cs
+/RepeatResearch/RepeatResearch_bak.cs
+/RepeatResearch/RepeatResearch.cs.bak

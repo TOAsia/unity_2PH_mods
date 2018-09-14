@@ -1,22 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RepeatResearch", "RepeatResearch\RepeatResearch.csproj", "{5B62D245-D09B-4127-B543-B475E097154A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{5B62D245-D09B-4127-B543-B475E097154A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5B62D245-D09B-4127-B543-B475E097154A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B62D245-D09B-4127-B543-B475E097154A}.Debug|x64.ActiveCfg = Debug|x64
+		{5B62D245-D09B-4127-B543-B475E097154A}.Debug|x64.Build.0 = Debug|x64
 		{5B62D245-D09B-4127-B543-B475E097154A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B62D245-D09B-4127-B543-B475E097154A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B62D245-D09B-4127-B543-B475E097154A}.Release|x64.ActiveCfg = Release|x64
+		{5B62D245-D09B-4127-B543-B475E097154A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EAEDA661-FA64-4208-B258-FCD59FD3CA7B}
 	EndGlobalSection
 EndGlobal
